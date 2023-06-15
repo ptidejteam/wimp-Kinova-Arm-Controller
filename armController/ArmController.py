@@ -1,5 +1,6 @@
 ## 
-#
+#  Main Class implementing Connection and control of the arm 
+# 
 # This Code uses some snipets from Examples provides by Kinova 
 #
 #
