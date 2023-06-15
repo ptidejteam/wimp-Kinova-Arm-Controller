@@ -120,10 +120,30 @@ class ArmController :
         # to be completed
 
     ## ----------------------------------------------------------
+    #  Creates a UDP connexion : UDP transport and UDP session
+    # Sould be called before sending a low level command to the robot 
+    #
+    # TO REFACTOR 
+    ## ----------------------------------------------------------
+    def UDPConnexion(self) : 
+        self.UDP_Transport = UDPTransport() 
+        self.routerUDP = RouterClient(self.UDP_Transport , errorCallback )
+        self.UDP_Transport.connect(IP_ADRESSE, UDP_PORT)
+
+        # Create a Session
+        session_info = Session_pb2.CreateSessionInfo()
+        session_info.username = USERNAME
+        session_info.password = PWD
+        session_info.session_inactivity_timeout = 60000   # (milliseconds)
+        session_info.connection_inactivity_timeout = 2000 # (milliseconds)
+
+        self.UDPsession_manager = SessionManager(self.routerUDP)
+        self.UDPsession_manager.CreateSession(session_info)
+
+    ## ----------------------------------------------------------
     # Return True or False whether the client is connected or not 
     def isConnected(self) :
         return self.connected 
-
 
     ## ----------------------------------------------------------
     # Move the Arm to a given catesian position 

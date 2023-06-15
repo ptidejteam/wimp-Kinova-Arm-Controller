@@ -1,5 +1,5 @@
 ##
-#
+# Arm Driver : send a set of command to the robot 
 #
 #
 #
@@ -10,6 +10,10 @@ from armController.ScanRobot  import ScanRobot
 from armController.CartesianPosition import CartesianPosition 
 from armController.TwistValues import TwistValues 
 from armController.JointSpeedValues import JointSpeedValues
+
+from armController.GripperLowlevelControl import GripperLowlevelControl ;
+
+import time ; 
 
 def main() : 
     armController = ArmController() 
@@ -51,6 +55,21 @@ def main() :
     duration = 3 
     #armController.joint_speed_command(jointSpeedValues , duration)
 
+
+    #
+    armController.UDPConnexion() 
+    gripperllControl = GripperLowlevelControl(armController.router, armController.routerUDP , 
+                                              armController.base_client) 
+    gripperllControl.reachGripperPosition(0)
+    time.sleep(1)
+    gripperllControl.reachGripperPosition(50)
+    time.sleep(1)
+
+    gripperllControl.reachGripperPosition(100)
+    time.sleep(1)
+    gripperllControl.reachGripperPosition(0)
+
+    #
     
     # Ends the sessions and deconnection of the client
     armController.disconnect() 
