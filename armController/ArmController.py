@@ -24,6 +24,8 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 
+from google.protobuf import json_format
+
 from armController.ConstantsUtilities import DISCONNECT, NOT_CONNECTED, CARTESIAN_MV_ACTION, \
      READ_CART_VALUES, TWIST_CMD, JOINT_SPEED_CMD, MOVE_TO_POSITION_ANGLES
 
@@ -79,6 +81,11 @@ class ArmController :
             return self.router 
         else : 
             return None
+    def get_base_client(self) : 
+        if (self.connected == True) : 
+            return self.base_client 
+        else : 
+            return None
 
     ## ---------------------------------------------------------------
     #
@@ -89,6 +96,11 @@ class ArmController :
             return self.base_cyclic_client  
         else : 
             return None
+    
+    ## ---------------------------------------------------------------    
+    callback1 = lambda kException: print("_________ callback error _________ {}".format(kException))
+    ## 
+
 
     ## --------------------------------------------------------------
     # Create a new session 
@@ -124,6 +136,7 @@ class ArmController :
     # Sould be called before sending a low level command to the robot 
     #
     # TO REFACTOR 
+    # Deprecated 
     ## ----------------------------------------------------------
     def UDPConnexion(self) : 
         self.UDP_Transport = UDPTransport() 
@@ -154,7 +167,7 @@ class ArmController :
     ## -----------------------------------------------------------
     # Create closure to set an event after an END or an ABORT
     ## ----------------------------------------------------------
-    def check_for_end_or_abort(self, e):
+    def check_for_end_or_abort(self, e): 
         """Return a closure checking for END or ABORT notifications
 
             Arguments:
@@ -169,6 +182,31 @@ class ArmController :
                 e.set()
         return check
  
+    # Create closure to set an event after an END or an ABORT
+    def check_for_sequence_end_or_abort(self, e):
+        """Return a closure checking for END or ABORT notifications on a sequence
+
+        Arguments:
+        e -- event to signal when the action is completed
+        (will be set when an END or ABORT occurs)
+        """
+
+        def check(notification, e = e):
+            event_id = notification.event_identifier
+            task_id = notification.task_index
+            if event_id == Base_pb2.SEQUENCE_TASK_COMPLETED:
+                print("Sequence task {} completed".format(task_id))
+            elif event_id == Base_pb2.SEQUENCE_ABORTED:
+                print("Sequence aborted with error {}:{}"\
+                    .format(\
+                        notification.abort_details,\
+                        Base_pb2.SubErrorCodes.Name(notification.abort_details)))
+                e.set()
+            elif event_id == Base_pb2.SEQUENCE_COMPLETED:
+                print("Sequence completed.")
+                e.set()
+        return check
+
 
     ## ----------------------------------------------------------
     # Move the Arm to a given catesian position 
@@ -384,6 +422,9 @@ class ArmController :
 
     ## ----------------------------------------------------------
     #
+    # important note : A command is not an action
+    #   One sends the command, the robot executes it "forever", meanwhile, an other command may be sent
+    #    and could be stop() commande which is setting 0 for the 6 twist values. 
     ## ----------------------------------------------------------
     def twist_command(self, twistValues , duration):
         if (self.connected == True) : 
@@ -468,6 +509,36 @@ class ArmController :
         self.base_client.Stop()
 
         return True
+
+    ##
+    # Plays a sequence of tasks defined in _action_sequence object 
+    #
+    ##
+    def play_sequence(self , _action_sequence) : 
+
+        e = threading.Event()
+        notification_handle = self.base_client.OnNotificationSequenceInfoTopic(
+            self.check_for_sequence_end_or_abort(e),
+            Base_pb2.NotificationOptions()
+        )
+        print("Creating sequence on device and executing it")
+        handle_sequence = self.base_client.CreateSequence(_action_sequence.get_sequence())
+        self.base_client.PlaySequence(handle_sequence)
+        
+        print("Waiting for movement to finish ...")
+        finished = e.wait(TIMEOUT_DURATION)
+
+        self.base_client.Unsubscribe(notification_handle)
+
+
+        if not finished:
+            print("Timeout on action notification wait")
+
+        return finished
+
+
+
+
 
 
 # Liste des operations : 
