@@ -104,7 +104,7 @@ class GripperLowlevelControl :
         base_feedback = self.base_cyclic.RefreshFeedback()
         self.motorcmd.position = base_feedback.interconnect.gripper_feedback.motor[0].position
         self.motorcmd.velocity = 0
-        self.motorcmd.force = 100
+        self.motorcmd.force = 100 
         
         for actuator in base_feedback.actuators:
             self.actuator_command = self.base_command.actuators.add()
@@ -123,74 +123,6 @@ class GripperLowlevelControl :
         self.armController.base_client.SetServoingMode(servoing_mode_info)
 
     
-    # DEPRECATED 
-    def __init(self, _router, _udpRouter , _base , proportional_gain = 2.0):
-        """
-            GripperLowLevelExample class constructor.
-
-            Inputs:
-                kortex_api.RouterClient router:            TCP router
-                kortex_api.RouterClient router_real_time:  Real-time UDP router
-                float proportional_gain: Proportional gain used in control loop (default value is 2.0)
-
-            Outputs:
-                None
-            Notes:
-                - Actuators and gripper initial position are retrieved to set initial positions
-                - Actuator and gripper cyclic command objects are created in constructor. Their
-                  references are used to update position and speed.
-        """
-
-        self.proportional_gain = proportional_gain
-
-        ###########################################################################################
-        # UDP and TCP sessions are used in this example.
-        # TCP is used to perform the change of servoing mode
-        # UDP is used for cyclic commands.
-        #
-        # 2 sessions have to be created: 1 for TCP and 1 for UDP
-        ###########################################################################################
-
-        self.router = _router
-        self.router_real_time = _udpRouter 
-
-
-        # Create base client using TCP router
-        self.base = _base
-
-        # Create base cyclic client using UDP router.
-        self.base_cyclic = BaseCyclicClient(self.router_real_time)
-
-        # Create base cyclic command object.
-        self.base_command = BaseCyclic_pb2.Command()
-        self.base_command.frame_id = 0
-        self.base_command.interconnect.command_id.identifier = 0
-        self.base_command.interconnect.gripper_command.command_id.identifier = 0
-
-        # Add motor command to interconnect's cyclic
-        self.motorcmd = self.base_command.interconnect.gripper_command.motor_cmd.add()
-
-        # Set gripper's initial position velocity and force
-        base_feedback = self.base_cyclic.RefreshFeedback()
-        self.motorcmd.position = base_feedback.interconnect.gripper_feedback.motor[0].position
-        self.motorcmd.velocity = 0
-        self.motorcmd.force = 100
-        
-        for actuator in base_feedback.actuators:
-            self.actuator_command = self.base_command.actuators.add()
-            self.actuator_command.position = actuator.position
-            self.actuator_command.velocity = 0.0
-            self.actuator_command.torque_joint = 0.0
-            self.actuator_command.command_id = 0
-            print("Position = ", actuator.position)
-        
-        # Save servoing mode before changing it
-        self.previous_servoing_mode = self.base.GetServoingMode()
-
-        # Set base in low level servoing mode
-        servoing_mode_info = Base_pb2.ServoingModeInformation()
-        servoing_mode_info.servoing_mode = Base_pb2.LOW_LEVEL_SERVOING
-        self.base.SetServoingMode(servoing_mode_info)
 
     
     #
@@ -234,6 +166,7 @@ class GripperLowlevelControl :
             target_position = 100.0
         if target_position < 0.0:
             target_position = 0.0
+        
         while True:
             try:
                 base_feedback = self.base_cyclic.Refresh(self.base_command)
@@ -248,11 +181,12 @@ class GripperLowlevelControl :
                     self.base_cyclic.Refresh(self.base_command)
                     return True
                 else:
-                    self.motorcmd.velocity = self.proportional_gain * abs(position_error)
+                    self.motorcmd.velocity = self.proportional_gain * abs(position_error) # Velocity decreases 
+                    
                     if self.motorcmd.velocity > 100.0:
                         self.motorcmd.velocity = 100.0
                     self.motorcmd.position = target_position
-
+                    print ("V=" , self.motorcmd.velocity , "F=" , self.motorcmd.force )
             except Exception as e:
                 print("Error in refresh: " + str(e))
                 return False

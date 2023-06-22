@@ -12,6 +12,7 @@ from armController.JointSpeedValues import JointSpeedValues
 from armController.GripperLowlevelControl import GripperLowlevelControl
 from armController.NotificationHandler import NotificationHandler 
 from armController.ActionSequence import ActionSequence 
+from armController.JointAnglesValues import JointAnglesValues
 
 import time ; 
 
@@ -37,32 +38,32 @@ def main() :
     #scanRobot = ScanRobot(armController) 
     #scanRobot.scan_devices() 
 
-    #cart_position = CartesianPosition(0.5 , 0 , 0.5)
+    cart_position = CartesianPosition(0.5 , 0.1 , 0.5)
     #armController.move_to_cartesian(cart_position)
 
     #cart_position = CartesianPosition(None , None , 0.55)
     #armController.move_to_cartesian(cart_position)
 
-    cart_position = CartesianPosition(0.5 , 0 , 0.55)
+    cart_position = CartesianPosition(0.5 , 0.1 , 0.5)
     #armController.move_to_cartesian(cart_position)
 
-    cart_position = CartesianPosition(None , None , None, 60 , 0 , 90)
+    cart_position = CartesianPosition(None , None , None, 90 , 0 , 45)
     #armController.move_to_cartesian(cart_position)
 
     #curr_cart_position = armController.read_cartesian_position()
     #curr_cart_position.display()
 
 
-    duration = 3 # seconds 
+    duration = 7 # seconds 
 
     twistValues = TwistValues(0.03 , 0 , 0 ) 
 
-    #twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 5 ) 
+    twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 0) 
     #armController.twist_command(twistValues , duration)
 
 
     # Sending joint_speed_command
-    #jointSpeedValues = JointSpeedValues([5 , 0 , 0 , 0 , 0 , 0, 0]) 
+    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, -20) 
     duration = 3 
     #armController.joint_speed_command(jointSpeedValues , duration)
 
@@ -88,18 +89,20 @@ def main() :
     #
     
     # Sending joint_speed_command
-    jointSpeedValues = JointSpeedValues([5 , 0 , 0 , 0 , 0 , 0, 0]) 
+    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, 0) 
     duration = 3 
     #armController.joint_speed_command(jointSpeedValues , duration)
 
     #
-    gripperllControl = GripperLowlevelControl(armController) 
-    gripperllControl.reachGripperPosition(50)
-    time.sleep(1)
-    gripperllControl.terminate() 
+    #gripperllControl = GripperLowlevelControl(armController) 
+    print ("LL commande to the gripper - start ")
+    #gripperllControl.reachGripperPosition(0)
+    print ("LL commande to the gripper - end ")
+    #time.sleep(1)
+    #gripperllControl.terminate() 
 
 
-    jointSpeedValues = JointSpeedValues([5 , 0 , 0 , 0 , 0 , 0, 0]) 
+    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, 0) 
     duration = 3 
     #armController.joint_speed_command(jointSpeedValues , duration)
 
@@ -107,17 +110,21 @@ def main() :
     #armController.move_to_cartesian(cart_position)
 
 
+    jointAnglesValues = JointAnglesValues(0,0,0,0,0,90,45)
+    #armController.move_to_position_angles(jointAnglesValues) 
+
+
     # Create a sequence 
-    """
-    action_sequence = ActionSequence("Sequence Gripper" , armController.get_base_cyclic_client()) 
-    action_sequence.add_cartesian_action(CartesianPosition(0.4 , 0 , 0.6) , 0 ) ;
+    
+    #action_sequence = ActionSequence("Sequence Gripper" , armController.get_base_cyclic_client()) 
+    #action_sequence.add_cartesian_action(CartesianPosition(0.4 , 0 , 0.6) , 0 ) ;
     #action_sequence.add_cartesian_action(CartesianPosition(0.4 , 0.1 , 0.55) , 1) ;
     #action_sequence.add_cartesian_action(CartesianPosition(0.6 , 0.1 , 0.55) , 1) ;    
     
     #action_sequence.add_cartesian_action(CartesianPosition(0.4 , 0 , 0.5 , 90 , 45 , None  ) , 2) ;
 
-    armController.play_sequence(action_sequence)
-    """
+    #armController.play_sequence(action_sequence)
+    
 
     # Unsubscribe for all notification 
     notif_handler.unsubscribe() 

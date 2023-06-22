@@ -25,6 +25,7 @@
     <Compile Include="armController\CartesianPosition.py" />
     <Compile Include="armController\ConstantsUtilities.py" />
     <Compile Include="armController\GripperLowlevelControl.py" />
+    <Compile Include="armController\JointAnglesValues.py" />
     <Compile Include="armController\NotificationHandler.py" />
     <Compile Include="armController\ScanRobot.py" />
     <Compile Include="armController\ActionSequence.py" />

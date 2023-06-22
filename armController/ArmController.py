@@ -26,25 +26,14 @@ from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 
 from google.protobuf import json_format
 
-from armController.ConstantsUtilities import DISCONNECT, NOT_CONNECTED, CARTESIAN_MV_ACTION, \
-     READ_CART_VALUES, TWIST_CMD, JOINT_SPEED_CMD, MOVE_TO_POSITION_ANGLES
+from armController.ConstantsUtilities import DISCONNECT, NOT_CONNECTED, CARTESIAN_MV_ACTION,\
+     READ_CART_VALUES, TWIST_CMD, JOINT_SPEED_CMD, MOVE_TO_POSITION_ANGLES, IP_ADRESSE, USERNAME,\
+     PWD, TCP_PORT, UDP_PORT, TRACE, SESSION_INACTIVITY_TIMEOUT, CONNECTION_INACTIVITY_TIMEOUT, TIMEOUT_DURATION
 
 from armController.CartesianPosition import CartesianPosition
 
-##
-# Global Variables : 
-IP_ADRESSE = "192.168.0.10"   # IP Adresse of the ARM
-USERNAME = "admin"            # username and password : used to create a session
-PWD = "admin"
-TCP_PORT = 10000              # TCP Port : used for high level control 
-UDP_PORT = 10001              # UDP Port : used for low  level control 
-TRACE = True                  # Boolean enabling/desabling trace printing 
-SESSION_INACTIVITY_TIMEOUT    = 60000 # (milliseconds)
-CONNECTION_INACTIVITY_TIMEOUT = 2000  # (milliseconds)
-#
-## 
-TIMEOUT_DURATION = 20
-##
+
+## --------------------------------------------------------------
 #
 #
 errorCallback = lambda kException: print("_________ callback error _________ {}".format(kException))
@@ -53,6 +42,8 @@ class ArmController :
     
     ## ----------------------------------------------------------
     # Constructor 
+    #
+    ## ----------------------------------------------------------
     def __init__(self) : 
         self.connected = False      # Indicate if the client is connected to the robot 
         self.busy = False           # Indicate if the robot is busy or not 
@@ -68,19 +59,25 @@ class ArmController :
             print("[INFO-",__name__ ,"] " , self.msg_connect_data()) ; 
 
     ## --------------------------------------------------------------
-    #
+    # returns a messsage that containt connection data 
+    ## --------------------------------------------------------------
     def msg_connect_data(self): 
         msg = "Connected to: " + IP_ADRESSE + " ON TCP Port:" + str(TCP_PORT) + " As: " + str(USERNAME )
         return msg
 
 
-    ##
+    ## --------------------------------------------------------------
     # Getter : returns the router Client Object if connected to the Robot 
+    ## --------------------------------------------------------------
     def get_router(self) :
         if (self.connected == True) : 
             return self.router 
         else : 
             return None
+
+    ## --------------------------------------------------------------
+    # Getter : returns the base client instance  
+    ## --------------------------------------------------------------
     def get_base_client(self) : 
         if (self.connected == True) : 
             return self.base_client 
@@ -88,9 +85,8 @@ class ArmController :
             return None
 
     ## ---------------------------------------------------------------
-    #
-    #
-    ##
+    # Getter : returns the base cyclic client  
+    ## --------------------------------------------------------------
     def get_base_cyclic_client(self) : 
         if (self.connected == True) : 
             return self.base_cyclic_client  
@@ -104,9 +100,9 @@ class ArmController :
 
     ## --------------------------------------------------------------
     # Create a new session 
-    #Should I check if there is connected first ?
+    # Should I check if there is connected first ?
+    ## --------------------------------------------------------------
     def new_session(self) :
-
         session_info = Session_pb2.CreateSessionInfo()
         session_info.username = USERNAME
         session_info.password = PWD
@@ -138,6 +134,7 @@ class ArmController :
     # TO REFACTOR 
     # Deprecated 
     ## ----------------------------------------------------------
+    """
     def UDPConnexion(self) : 
         self.UDP_Transport = UDPTransport() 
         self.routerUDP = RouterClient(self.UDP_Transport , errorCallback )
@@ -152,7 +149,7 @@ class ArmController :
 
         self.UDPsession_manager = SessionManager(self.routerUDP)
         self.UDPsession_manager.CreateSession(session_info)
-
+    """
     ## ----------------------------------------------------------
     # Return True or False whether the client is connected or not 
     def isConnected(self) :
@@ -166,6 +163,7 @@ class ArmController :
         
     ## -----------------------------------------------------------
     # Create closure to set an event after an END or an ABORT
+    # (Notification callback)
     ## ----------------------------------------------------------
     def check_for_end_or_abort(self, e): 
         """Return a closure checking for END or ABORT notifications
@@ -174,15 +172,17 @@ class ArmController :
             e -- event to signal when the action is completed
             (will be set when an END or ABORT occurs)
         """
-        print("Notification Call Back")
+        # print("Notification Call Back")
         def check(notification, e = e):
             print("EVENT : " + Base_pb2.ActionEvent.Name(notification.action_event))
             if notification.action_event == Base_pb2.ACTION_END \
             or notification.action_event == Base_pb2.ACTION_ABORT:                
                 e.set()
         return check
- 
+    ## ----------------------------------------------------------
     # Create closure to set an event after an END or an ABORT
+    # (Notification callback)
+    ## ----------------------------------------------------------
     def check_for_sequence_end_or_abort(self, e):
         """Return a closure checking for END or ABORT notifications on a sequence
 
@@ -437,7 +437,7 @@ class ArmController :
 
             # Initialisation de l'objet 
             command.reference_frame = Base_pb2.CARTESIAN_REFERENCE_FRAME_TOOL
-            command.duration = 0
+            command.duration = duration #0
         
             twist = command.twist
             twist.linear_x = twistValues.linear_x 
@@ -451,11 +451,11 @@ class ArmController :
             self.base_client.SendTwistCommand(command)
 
             # Let time for twist to be executed
-            time.sleep(duration) 
-
-            print ("Stopping the robot...")
-            self.base_client.Stop()
-            time.sleep(1)
+            #time.sleep(duration) 
+             
+            #print ("Stopping the robot...")
+            #self.base_client.Stop()
+            #time.sleep(10)
 
             return True
         else : 
@@ -492,7 +492,8 @@ class ArmController :
         if actuator_count == 7:
             # speeds = [SPEED, 0, -SPEED, 0, SPEED, 0, -SPEED]
             i = 0
-        speeds = jointSpeedValues.get_speedValues() 
+        speeds = jointSpeedValues.speedJointList() 
+        
         for speed in speeds:
             print ("Actuator " , i , " - Speed : " , speed )
             joint_speed = joint_speeds.joint_speeds.add()
@@ -509,6 +510,51 @@ class ArmController :
         self.base_client.Stop()
 
         return True
+
+    ## ---------------------------------------------------------------
+    # Set angles to the actuators 
+    # 
+    ## ---------------------------------------------------------------
+    def move_to_position_angles(self, jointAngleValues):
+        # Make sure the arm is in Single Level Servoing mode
+        base_servo_mode = Base_pb2.ServoingModeInformation()
+        base_servo_mode.servoing_mode = Base_pb2.SINGLE_LEVEL_SERVOING
+        self.base_client.SetServoingMode(base_servo_mode)
+        
+        # Move arm to ready position
+        constrained_joint_angles = Base_pb2.ConstrainedJointAngles()
+
+        actuator_count = self.base_client.GetActuatorCount().count
+        print("Nombre Actuators : " , actuator_count)
+
+        #angles = [0.0] * actuator_count
+        #print ("Angles : " , angles )
+        angles = jointAngleValues.angleJointList()
+        for joint_id in range(len(angles)):
+            joint_angle = constrained_joint_angles.joint_angles.joint_angles.add()
+            print("Joint ID : " , joint_id , "  Angle : " , angles[joint_id]) 
+            joint_angle.joint_identifier = joint_id
+            joint_angle.value = angles[joint_id]
+        
+        e = threading.Event()
+        notification_handle = self.base_client.OnNotificationActionTopic(
+            self.check_for_end_or_abort(e),
+            Base_pb2.NotificationOptions()
+        )
+
+        print("Reaching joint angles...")
+        self.base_client.PlayJointTrajectory(constrained_joint_angles)
+
+        print("Waiting for movement to finish ...")
+        finished = e.wait(TIMEOUT_DURATION)
+        self.base_client.Unsubscribe(notification_handle)
+
+        if finished:
+            print("Joint angles reached")
+        else:
+            print("Timeout on action notification wait")
+        
+        return finished
 
     ##
     # Plays a sequence of tasks defined in _action_sequence object 
