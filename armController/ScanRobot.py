@@ -11,7 +11,7 @@ from kortex_api.autogen.messages import Common_pb2
 from google.protobuf import json_format
 
 from armController.ArmController import ArmController, TRACE
-from armController.ConstantsUtilities import NOT_CONNECTED
+from armController.ConstantsUtilities import NOT_CONNECTED_MSG
 
 ##
 #

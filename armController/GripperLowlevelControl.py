@@ -11,6 +11,8 @@
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages import Base_pb2
 from kortex_api.autogen.messages import BaseCyclic_pb2
+from kortex_api.autogen.client_stubs.GripperCyclicClientRpc import GripperCyclicClient
+
 from kortex_api.UDPTransport import UDPTransport
 from kortex_api.RouterClient import RouterClient, RouterClientSendOptions
 from kortex_api.autogen.messages import Session_pb2
@@ -122,8 +124,13 @@ class GripperLowlevelControl :
         servoing_mode_info.servoing_mode = Base_pb2.LOW_LEVEL_SERVOING
         self.armController.base_client.SetServoingMode(servoing_mode_info)
 
-    
+        self.gripper_cyclic = GripperCyclicClient(self.armController.get_router()) 
 
+    
+    ## TO REMOVE 
+    def feedback(self) :        
+        feedback = self.gripper_cyclic.RefreshFeedback() 
+        
     
     #
     def terminate(self) : 
@@ -143,8 +150,9 @@ class GripperLowlevelControl :
         self.armController.base_client.SetServoingMode(self.previous_servoing_mode) 
 
 
-    # ------------------------------------------------------------------------------
+    ## ------------------------------------------------------------------------------
     # 
+    ## ------------------------------------------------------------------------------
     def reachGripperPosition(self , target_position) :
             
         """
@@ -186,7 +194,7 @@ class GripperLowlevelControl :
                     if self.motorcmd.velocity > 100.0:
                         self.motorcmd.velocity = 100.0
                     self.motorcmd.position = target_position
-                    print ("V=" , self.motorcmd.velocity , "F=" , self.motorcmd.force )
+                    #print ("V=" , self.motorcmd.velocity , "F=" , self.motorcmd.force )
             except Exception as e:
                 print("Error in refresh: " + str(e))
                 return False

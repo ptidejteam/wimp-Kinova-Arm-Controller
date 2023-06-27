@@ -19,14 +19,14 @@ TIMEOUT_DURATION = 20
 # Constants corresponding to messages that will be displayed to the user 
 #
 ##
-NOT_CONNECTED = "Not connected to the robot"
-DISCONNECT    = "Disconnexion completed" 
-CARTESIAN_MV_ACTION = "Movement to cartesian position"
-READ_CART_VALUES = "Reading cartesian position Values"
-TWIST_CMD = "Sending Twist command"
-JOINT_SPEED_CMD = "Sending a joint speed command"
-MOVE_TO_POSITION_ANGLES = "Movement to a position defined by the given angles"
-
+NOT_CONNECTED_MSG = "Not connected to the robot"
+DISCONNECT_MSG    = "Disconnexion completed" 
+CARTESIAN_MV_ACTION_MSG = "Movement to cartesian position"
+READ_CART_VALUES_MSG = "Reading cartesian position Values"
+TWIST_CMD_MSG = "Sending Twist command"
+JOINT_SPEED_CMD_MSG = "Sending a joint speed command"
+MOVE_TO_POSITION_ANGLES_MSG = "Movement to a position defined by the given angles"
+MOVE_TO_PREDEFINED_POSITION_MSG = "Moving to a predefined position"
 
 ##
 #

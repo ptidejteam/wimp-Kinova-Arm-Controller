@@ -25,13 +25,14 @@ def main() :
     armController = ArmController() 
     
     notif_handler = NotificationHandler(armController.get_base_client()) 
-    notif_handler.subscribe() 
+    notif_handler.subscribeAll() 
 
 
 
     # Send the Robot the predefined Home position 
-    armController.move_to_Home_position()
+    #armController.move_to_Home_position() 
 
+    #notif_handler.subscribe() 
     # Send the Robot the predefined position named "Packaging"
     #armController.move_to_predefined_position("Packaging")   #Zero 
 
@@ -54,7 +55,7 @@ def main() :
     #curr_cart_position.display()
 
 
-    duration = 7 # seconds 
+    duration = 3 # seconds 
 
     twistValues = TwistValues(0.03 , 0 , 0 ) 
 
@@ -94,12 +95,12 @@ def main() :
     #armController.joint_speed_command(jointSpeedValues , duration)
 
     #
-    #gripperllControl = GripperLowlevelControl(armController) 
+    gripperllControl = GripperLowlevelControl(armController) 
     print ("LL commande to the gripper - start ")
-    #gripperllControl.reachGripperPosition(0)
+    gripperllControl.reachGripperPosition(100)
     print ("LL commande to the gripper - end ")
-    #time.sleep(1)
-    #gripperllControl.terminate() 
+    time.sleep(1)
+    gripperllControl.terminate() 
 
 
     jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, 0) 
@@ -126,7 +127,7 @@ def main() :
     #armController.play_sequence(action_sequence)
     
 
-    # Unsubscribe for all notification 
+    # Unsubscribe for all notification   
     notif_handler.unsubscribe() 
 
     # Ends the sessions and deconnection of the client
