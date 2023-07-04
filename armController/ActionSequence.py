@@ -77,3 +77,19 @@ class ActionSequence :
         task = self.sequence.tasks.add()
         task.group_identifier = _grp_id
         task.action.CopyFrom(action)
+
+
+    def add_angular_action(self , _grp_id  ) : 
+        print("Creating angular action")
+        angular_action = Base_pb2.Action()
+        angular_action.name = "Example angular action"
+        angular_action.application_data = ""
+    
+        actuator_count = base.GetActuatorCount().count
+        for joint_id in range(actuator_count):
+            joint_angle = angular_action.reach_joint_angles.joint_angles.joint_angles.add()
+            joint_angle.value = 0.0
+
+        task = self.sequence.tasks.add()
+        task.group_identifier = _grp_id # sequence elements with same group_id are played at the same time
+        task.action.CopyFrom(angular_action)

@@ -24,7 +24,7 @@ from kortex_api.autogen.client_stubs.BaseClientRpc import BaseClient
 from kortex_api.autogen.messages import Base_pb2
 from kortex_api.autogen.client_stubs.BaseCyclicClientRpc import BaseCyclicClient
 from kortex_api.autogen.messages.Base_pb2 import ProtectionZone, CartesianLimitation
-
+from armController.ArmAction import HOME_POSITION, PREDEF_POSITION, CARTESIAN_POSITION, POSITION_ANGLES, JOINT_TWIST, JOINT_SPEED
 from google.protobuf import json_format
 
 from armController.ConstantsUtilities import DISCONNECT_MSG, NOT_CONNECTED_MSG, CARTESIAN_MV_ACTION_MSG,\
@@ -47,11 +47,16 @@ class ArmController :
     #
     ## ----------------------------------------------------------
     def __init__(self) : 
+        print ("Connecttion Initalization")
         self.connected = False      # Indicate if the client is connected to the robot 
         self.busy = False           # Indicate if the robot is busy or not 
         self.transport = TCPTransport()
         self.router = RouterClient(self.transport , errorCallback) 
+        print ("Start connection : " ,IP_ADRESSE , '  Port : ' , TCP_PORT )
+
         self.transport.connect(IP_ADRESSE, TCP_PORT)
+
+        print ("Start connection : DONE " )
         self.connected = True
         self.new_session()
         self.base_client =  BaseClient(self.router)
@@ -60,8 +65,11 @@ class ArmController :
         if (TRACE == True) : 
             print("[INFO-",__name__ ,"] " , self.msg_connect_data()) ; 
 
+
+
     #
     # don't think, this may work 
+    # TOREMOVE 
     def protectionZone(self):
         cartesianLimitation = CartesianLimitation()
         cartesianLimitation.translation = 0.0 # float. No IDEA what should the value
@@ -414,7 +422,7 @@ class ArmController :
     #  TO REVIEW 
     #
     ## ----------------------------------------------------------
-    def move_to_position_angles(self , angles):
+    def move_to_position_angles(self , jointAnglesValues):
         # check if connected to the robot 
         if (self.connected == False) : 
             if (TRACE == True) : 
@@ -436,8 +444,9 @@ class ArmController :
 
         actuator_count = self.base_client.GetActuatorCount().count
         print("Nombre Actuators : " , actuator_count)
-        #angles = [0.0] * actuator_count
-        #print ("Angles : " , angles )
+        angles = jointAnglesValues.angleJointList()
+        
+        print ("Angles : " , angles )
         # Actuator 4 at 90 degrees
         for joint_id in range(len(angles)):
             joint_angle = constrained_joint_angles.joint_angles.joint_angles.add()
@@ -579,6 +588,35 @@ class ArmController :
 
         return True
 
+    ##
+    #
+    ##
+    def perform(self , user_action) : 
+        # TODO : CHECK if CONNECTED 
+        
+        action_type = user_action.action_type()
+
+        if (action_type == HOME_POSITION ) : 
+            self.move_to_Home_position()             
+        
+        elif (action_type == PREDEF_POSITION ) : 
+            self.move_to_predefined_position(user_action.get_position_label() ) 
+            
+        elif (action_type ==CARTESIAN_POSITION) : 
+            self.move_to_cartesian(user_action.get_cartesian_position())
+            
+        elif (action_type ==POSITION_ANGLES ) : 
+            pass
+        elif     (action_type ==JOINT_TWIST ) :
+            self.twist_command(user_action.get_twist_values() , user_action.get_duration())
+            pass
+        elif (action_type ==JOINT_SPEED) :  
+            pass 
+        else : 
+
+            print("Problem")
+
+        
     ## ----------------------------------------------------------------------------
     # Plays a sequence of tasks defined in _action_sequence object 
     #

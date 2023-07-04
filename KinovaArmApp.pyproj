@@ -21,6 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="armController\ArmAction.py" />
     <Compile Include="armController\ArmController.py" />
     <Compile Include="armController\CartesianPosition.py" />
     <Compile Include="armController\ConstantsUtilities.py" />
@@ -30,6 +31,7 @@
     <Compile Include="armController\ScanRobot.py" />
     <Compile Include="armController\ActionSequence.py" />
     <Compile Include="armController\TwistValues.py" />
+    <Compile Include="GrabSequence.py" />
     <Compile Include="KinovaArmApp.py" />
   </ItemGroup>
   <ItemGroup>

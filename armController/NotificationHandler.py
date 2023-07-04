@@ -1,6 +1,8 @@
 ##
 # Implements Notification handling 
 # 
+#  There are a set of callback methods corresponding the notification types. 
+#  They simply display the notification data as a JSON object. 
 #
 # @auteur el hachemi alikacem
 # @date 18 june 2023
@@ -24,25 +26,11 @@ PROTECT_ZONE_NOTIF   = 9
 ROBOT_EVENT_NOTIF    = 10
 SEQ_INFO_NOTIF       = 11
 SERV_MODE_NOTIF      = 12
-USER_NOTIF_NOTIF     = 13
+USER_NOTIF           = 13
 
-"""
-base_client2.OnNotificationActionTopic
-base_client2.OnNotificationArmStateTopic
-base_client2.OnNotificationConfigurationChangeTopic
-base_client2.OnNotificationControlModeTopic
-base_client2.OnNotificationControllerTopic
-base_client2.OnNotificationFactoryTopic
-base_client2.OnNotificationMappingInfoTopic
-base_client2.OnNotificationNetworkTopic
-base_client2.OnNotificationOperatingModeTopic
-base_client2.OnNotificationProtectionZoneTopic
-base_client2.OnNotificationRobotEventTopic
-base_client2.OnNotificationSequenceInfoTopic
-base_client2.OnNotificationServoingModeTopic
-base_client2.OnNotificationUserTopic
-"""
-
+##
+# Callback 
+##
 
 def configChangeNotification_callback(data):
         print("*****************************************************")
@@ -50,8 +38,8 @@ def configChangeNotification_callback(data):
         print(json_format.MessageToJson(data))
         print("*****************************************************")
 
-    ## -------------------------------------------------------------------------
-    ## -------------------------------------------------------------------------
+## -------------------------------------------------------------------------
+## -------------------------------------------------------------------------
 def controlModeNotification_callback(data):
         print("*********************************************")
         print("*  Notification callback for : Control Mode *")
@@ -82,8 +70,6 @@ def controllerNotification_callback(data):
         print(json_format.MessageToJson(data))
         print("*********************************************")
 
-
-
 ## -------------------------------------------------------------------------
 ## -------------------------------------------------------------------------
 def factoryNotification_callback(data):
@@ -100,7 +86,6 @@ def mappingInfoNotification_callback(data) :
     print(json_format.MessageToJson(data))
     print("*********************************************")
 
-
 ## -------------------------------------------------------------------------
 ## -------------------------------------------------------------------------
 def networkNotification_callback(data) :
@@ -109,7 +94,6 @@ def networkNotification_callback(data) :
     print(json_format.MessageToJson(data))
     print("*********************************************")
 
-
 ## -------------------------------------------------------------------------
 ## -------------------------------------------------------------------------
 def operatingNotification_callback(data):
@@ -117,7 +101,6 @@ def operatingNotification_callback(data):
     print("* Notification callback for : Operating Mode*")
     print(json_format.MessageToJson(data))
     print("*********************************************")
-
 
 ## -------------------------------------------------------------------------
 ## -------------------------------------------------------------------------
@@ -134,7 +117,6 @@ def robotEventNotification_callback(data):
     print("*  Notification callback for : Robot Event  *")
     print(json_format.MessageToJson(data))
     print("*********************************************")
-
 
 ## -------------------------------------------------------------------------
 ## -------------------------------------------------------------------------
@@ -159,11 +141,8 @@ def userNotification_callback(data):
     print("*  Notification callback for : User         *")
     print(json_format.MessageToJson(data))
 
-
-
-
 ## -------------------------------------------------------------------------
-##
+# Main class implementing the notification handling 
 #
 ## -------------------------------------------------------------------------
 class NotificationHandler : 
@@ -173,6 +152,7 @@ class NotificationHandler :
     def __init__(self , _base_client) :
         if (_base_client != None) : 
             self.base_client = _base_client 
+            # the folowinf list will contain the Notification object 
             self.handler_list = [None, None, None, None, None, None, None, None, None, None, None, None, None, None]
         else :
             #TODO : Display a Message : Can't process notifications 
@@ -180,7 +160,7 @@ class NotificationHandler :
             
  
     ## -------------------------------------------------------------------------
-    ## Subsribe to all the defined notifications 
+    ## Subsribe to all the existing notifications 
     ## -------------------------------------------------------------------------
     def subscribeAll(self) :   
         self.subscribe(ACTION_NOTIF)
@@ -196,9 +176,16 @@ class NotificationHandler :
         self.subscribe(ROBOT_EVENT_NOTIF)
         self.subscribe(SEQ_INFO_NOTIF)
         self.subscribe(SERV_MODE_NOTIF)
-        self.subscribe(USER_NOTIF_NOTIF)
+        self.subscribe(USER_NOTIF)
                 
     ## -------------------------------------------------------------------------
+    # Subscribe to a list of notifications 
+    # @param notification_type_list contains list of 
+    ## -------------------------------------------------------------------------
+    def subscribe_list(self , notification_type_list) :    
+        for one_notificatin_type in notification_type_list :  
+            self.subscribe(one_notificatin_type)  
+
     ## -------------------------------------------------------------------------
     def subscribe(self , notification_type) :       
       
@@ -217,6 +204,7 @@ class NotificationHandler :
         elif notification_type == CONFIG_CHANGE_NOTIF  : #2
             notif_handle = self.base_client.OnNotificationConfigurationChangeTopic(configChangeNotification_callback,Base_pb2.NotificationOptions())
             self.handler_list[CONFIG_CHANGE_NOTIF] = notif_handle
+
         # The next notification handler (OnNotificationControlModeTopic) is DEPRECATED, It's better to not use 
         #elif notification_type == CONTROL_MODE_NOTIF   : #3
             # Notification for Control Mode : probably When it changes from Low level to high level and vice versa 
@@ -260,9 +248,9 @@ class NotificationHandler :
             notif_handle = self.base_client.OnNotificationServoingModeTopic(servoingModeNotification_callback,Base_pb2.NotificationOptions()) 
             self.handler_list[SERV_MODE_NOTIF]= notif_handle            
 
-        elif notification_type == USER_NOTIF_NOTIF     : #= 13
+        elif notification_type == USER_NOTIF     : #= 13
             notif_handle = self.base_client.OnNotificationUserTopic(userNotification_callback,Base_pb2.NotificationOptions()) 
-            self.handler_list[USER_NOTIF_NOTIF]= notif_handle            
+            self.handler_list[USER_NOTIF]= notif_handle            
 
         else : 
             print ("Not expected ")

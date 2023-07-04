@@ -37,35 +37,66 @@ def main() :
     # notif_handler.subscribeAll() 
 
     # Or : subsribe for a given set of Notification types 
-    notif_handler.subscribe_list([ACTION_NOTIF, ARM_STATE_NOTIF , CONFIG_CHANGE_NOTIF ]) 
+    #notif_handler.subscribe_list([ACTION_NOTIF, ARM_STATE_NOTIF , CONFIG_CHANGE_NOTIF ]) 
 
     # ================================================================= Notifications : End
 
- 
+     
 
-    # Start ------------------------------------------------------ Section Scanning material
-    scanRobot = ScanRobot(armController) 
-    #scanRobot.scan_devices() 
-    # END ====================================================== Section Scanning material 
+    home_position = Move2HomePositionAction()     
+    #armController.perform(home_position)
 
+    curr_cart_position = armController.read_cartesian_position()
+    curr_cart_position.display()
 
-    home_position = Move2HomePositionAction() 
-    predef_position = Move2PredefinedPositionAction("Packaging")
-
-    armController.perform(home_position)
-    # armController.perform(predef_position)
     ## ----------
-    cart_position = CartesianPosition(0.5 , 0.1 , 0.5)
-    cart_pos_action = Move2CartesianPositionAction(cart_position)
-    armController.perform(cart_pos_action)
+    
 
-    twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 0) 
-    duration = 4 
-    twist_action = JointTwistAction(twistValues , duration)
-    armController.perform(twist_action)
+    #cart_position = CartesianPosition(None , None , None , 90 , 0  , 70)
+    #cart_pos_action = Move2CartesianPositionAction(cart_position)
+    #armController.perform(cart_pos_action)
+    curr_cart_position = armController.read_cartesian_position()
+    #curr_cart_position.display()
+
+
+
+    #jointAnglesValues = JointAnglesValues(0,0,0,45,180,0,90)
+    #armController.move_to_position_angles(jointAnglesValues) 
+
+    #jointAnglesValues = JointAnglesValues(0,0,0,0,0,0,0)
+    #armController.move_to_position_angles(jointAnglesValues) 
+
+    jointAnglesValues = JointAnglesValues(280,15,0,140,0,300,270)
+    armController.move_to_position_angles(jointAnglesValues) 
+
+
+    cart_position = CartesianPosition( 0.20 , 0.43  , 0.20)
+    cart_pos_action = Move2CartesianPositionAction(cart_position)
+    #armController.perform(cart_pos_action)
+    curr_cart_position = armController.read_cartesian_position()
+    curr_cart_position.display()
+
+
+
+    #armController.perform(cart_pos_action)
+
+    #cart_position = CartesianPosition(None , None , 0.15)
+    #cart_pos_action = Move2CartesianPositionAction(cart_position)
+    #armController.perform(cart_pos_action)
+    curr_cart_position = armController.read_cartesian_position()
+    curr_cart_position.display()
 
     ## ===================================================================
+    # cart_position = CartesianPosition(0.11 , 0.67 , 0.14 , -90 , -177 , 20)
+    # armController.perform(cart_pos_action)
 
+
+
+    #cart_position = CartesianPosition(None , 0.05 , None)
+    #armController.perform(cart_pos_action)
+
+    curr_cart_position = armController.read_cartesian_position()
+    #curr_cart_position.display()
 
 
     # Start ------------------------------------------------------ Section Move to Predefined position : Start 
@@ -99,8 +130,8 @@ def main() :
 
     # Start ------------------------------------------------------ Read the current poisiton 
     # Returns (X, Y, Z,Theta_X, Theta_Y , Theta_Z)
-    curr_cart_position = armController.read_cartesian_position()
-    curr_cart_position.display()
+    #curr_cart_position = armController.read_cartesian_position()
+    #curr_cart_position.display()
     # END ====================================================== Read the current poisiton 
      
 
