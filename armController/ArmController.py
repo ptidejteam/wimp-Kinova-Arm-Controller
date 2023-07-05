@@ -40,6 +40,9 @@ from armController.CartesianPosition import CartesianPosition
 #
 errorCallback = lambda kException: print("_________ callback error _________ {}".format(kException))
 
+##
+#
+## 
 class ArmController :
     
     ## ----------------------------------------------------------
@@ -153,6 +156,7 @@ class ArmController :
     ## ----------------------------------------------------------
     # Disconnect the client 
     # Terminates the session and close the connexion 
+    ## ----------------------------------------------------------
     def disconnect(self) : 
         if (self.connected == True) :
             self.session.CloseSession() 
@@ -168,6 +172,7 @@ class ArmController :
 
     ## ----------------------------------------------------------
     # Return True or False whether the client is connected or not 
+    ## ----------------------------------------------------------
     def isConnected(self) :
         return self.connected 
 
@@ -195,6 +200,7 @@ class ArmController :
         return check
 
     ## ------------------------------------TMP ----------------------------------
+    ## TO REMOVE ?
     def check_for_end_or_abort_Twist(self, e): 
         """Return a closure checking for END or ABORT notifications
 
@@ -246,7 +252,8 @@ class ArmController :
     # Move the Arm to (predefined) Home position 
     ## ----------------------------------------------------------
     def move_to_Home_position(self) : 
-        self.move_to_predefined_position("Home") 
+        res = self.move_to_predefined_position("Home") 
+        return res 
         
 
     ## ----------------------------------------------------------
@@ -472,6 +479,7 @@ class ArmController :
             "Movement to a position defined by the given angles"
         else:
             print("[WARN] Timeout on action : Movement to angle position")
+
         return finished
 
     ## ----------------------------------------------------------
@@ -533,8 +541,8 @@ class ArmController :
 
             print ("Stopping the robot...")
             self.base_client.Stop()
-
             return True
+
         else : 
             if (TRACE == True) : 
                 print ("[WARN]" , NOT_CONNECTED_MSG)
@@ -588,36 +596,38 @@ class ArmController :
 
         return True
 
-    ##
-    #
-    ##
+    ## ------------------------------------------------------------------
+    #  Process the action given as a parametre 
+    ## ------------------------------------------------------------------
     def perform(self , user_action) : 
         # TODO : CHECK if CONNECTED 
         
         action_type = user_action.action_type()
+        res = False 
 
         if (action_type == HOME_POSITION ) : 
-            self.move_to_Home_position()             
+            res = self.move_to_Home_position()             
         
         elif (action_type == PREDEF_POSITION ) : 
-            self.move_to_predefined_position(user_action.get_position_label() ) 
+            res = self.move_to_predefined_position(user_action.get_position_label() ) 
             
         elif (action_type ==CARTESIAN_POSITION) : 
-            self.move_to_cartesian(user_action.get_cartesian_position())
+            res = self.move_to_cartesian(user_action.get_cartesian_position())
             
         elif (action_type ==POSITION_ANGLES ) : 
-            pass
-        elif     (action_type ==JOINT_TWIST ) :
-            self.twist_command(user_action.get_twist_values() , user_action.get_duration())
-            pass
+            res = self.move_to_position_angles(user_action.get_joint_Angles())
+            
+        elif (action_type ==JOINT_TWIST ) :
+            res = self.twist_command(user_action.get_twist_values() , user_action.get_duration())
+            
         elif (action_type ==JOINT_SPEED) :  
-            pass 
+            res = self.joint_speed_command(user_action.get_joint_speed_values() , user_action.get_duration())
         else : 
+            print("[ERR] Action Type Not Expected")
 
-            print("Problem")
+        return res 
 
-        
-    ## ----------------------------------------------------------------------------
+    ## ---------------------------------------------------------------------------
     # Plays a sequence of tasks defined in _action_sequence object 
     #
     ## ----------------------------------------------------------------------------

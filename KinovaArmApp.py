@@ -3,7 +3,10 @@
 #
 # This code shows how the Arm Controller API is used 
 #
+# @autor el hachemi Alikacem
+#
 ##
+
 from armController.ArmController import ArmController 
 from armController.ScanRobot  import ScanRobot 
 from armController.CartesianPosition import CartesianPosition 
@@ -15,7 +18,8 @@ from armController.NotificationHandler import NotificationHandler, ACTION_NOTIF,
 from armController.ActionSequence import ActionSequence 
 from armController.JointAnglesValues import JointAnglesValues
 from armController.ArmAction import Move2HomePositionAction, Move2PredefinedPositionAction, Move2CartesianPositionAction,\
-    JointTwistAction
+    JointTwistAction, Move2PositionAnglesAction, JointSpeedAction
+
 import time ; 
 
 # WHAT IS FOR ... 
@@ -24,11 +28,14 @@ import time ;
 #    #armControlle
 #    pass 
 
+## -----------------------------------------------------------------------
+#  
+## -----------------------------------------------------------------------
 def main() : 
     # First operation : Creation of the ArmController Instance - creation of the connection and a start a session
     armController = ArmController() 
     
-    # ------------------------------------------------------ Section Notifications : Start 
+    # Section Notifications ------------------------------------------------- Start 
     # Notifications 
     # Initiates the notification Handling 
     notif_handler = NotificationHandler(armController.get_base_client()) 
@@ -36,65 +43,70 @@ def main() :
     # Subsribe to All (the thirteen) notification types 
     # notif_handler.subscribeAll() 
 
-    # Or : subsribe for a given set of Notification types 
-    notif_handler.subscribe_list([ACTION_NOTIF, ARM_STATE_NOTIF , CONFIG_CHANGE_NOTIF ]) 
-
-    # ================================================================= Notifications : End
+    # Or : subsribe for a given set of Notification types - See NotificationHandler.py for the defined notification types
+    #notif_handler.subscribe_list([ACTION_NOTIF, ARM_STATE_NOTIF , CONFIG_CHANGE_NOTIF ]) 
+    # ========================================================================= End
 
  
 
-    # Start ------------------------------------------------------ Section Scanning material
+    # Device scanning --------------------------------------------------------- START 
     scanRobot = ScanRobot(armController) 
     #scanRobot.scan_devices() 
-    # END ====================================================== Section Scanning material 
+    # ========================================================================= End
 
 
+    # Move to Home Position --------------------------------------------------- START 
     home_position = Move2HomePositionAction() 
-    predef_position = Move2PredefinedPositionAction("Packaging")
-
     armController.perform(home_position)
-    # armController.perform(predef_position)
-    ## ----------
+    # ========================================================================= End
+
+
+
+    # Display catesian position ---------------------------------------------- Start
+    # Returns (X, Y, Z, Theta_X, Theta_Y , Theta_Z)
+    curr_cart_position = armController.read_cartesian_position()
+    curr_cart_position.display()
+    # ========================================================================= End
+
+
+
+
+    # Move to Predefined Position : Packaging, Home or Zero ------------------- START 
+    predef_position = Move2PredefinedPositionAction("Packaging")    
+    #armController.perform(predef_position)
+    # ========================================================================= End
+
+
+    # Move to cartesian position ----------------------------------------------- START 
     cart_position = CartesianPosition(0.5 , 0.1 , 0.5)
     cart_pos_action = Move2CartesianPositionAction(cart_position)
-    armController.perform(cart_pos_action)
+    #armController.perform(cart_pos_action)
+    # ========================================================================= End
 
-    twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 0) 
-    duration = 4 
+    ## Changer le nom - TODO 
+
+    ## Joint Twist Action ------------------------------------------------------ START
+    twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 0) # move on X, 3cm by second 
+    duration = 3 
     twist_action = JointTwistAction(twistValues , duration)
-    armController.perform(twist_action)
-
-    ## ===================================================================
-
+    #armController.perform(twist_action)
+    # ========================================================================= End
 
 
-    # Start ------------------------------------------------------ Section Move to Predefined position : Start 
-    # Move the predefined 'home' position 
-    # armController.move_to_Home_position() 
-
-    # Moving to the predefined 'Packaging' position - Zero is also a predefined position
-    #armController.move_to_predefined_position("Packaging")   #Zero 
-    # ====================================================== Section Move to Predefined position : End 
+    ## Rotate joints to the given angle ---------------------------------------- START
+    jointAnglesValues = JointAnglesValues(0,0,0,0,0,90,45)
+    positionAngle_action = Move2PositionAnglesAction(jointAnglesValues) 
+    # armController.perform(positionAngle_action)
+    # ========================================================================= End
 
 
+    ## Rotate joints to the given angle ---------------------------------------- START
+    jointSpeedValues = JointSpeedValues(0 , 5 , 0 , 0 , 0 , 0, -20) #
+    duration = 3 
+    jointSpeedAction = JointSpeedAction(jointSpeedValues, duration)
+    armController.perform(jointSpeedAction) 
+    # ========================================================================= End
 
-    # Start ------------------------------------------------------ Section to cartesian position : Start 
-    # (X, Y, Z) = (0.5 , 0.1 , 0.5)
-    #cart_position = CartesianPosition(0.5 , 0.1 , 0.5)
-    #armController.move_to_cartesian(cart_position)
-     
-    # (X, Y, Z) = (Current X , Current Y , 0.5)
-    #cart_position = CartesianPosition(None , None , 0.55)
-    #armController.move_to_cartesian(cart_position)
-
-    # Here, we specify the position of the arm for a given theta_X, theta_Y tetha_Z
-
-    # (theta_X, theta_Y tetha_Z) = (90 , 0 , 45)  degrees 
-    # Note that (X, Y and Z) = (current X, current Y and current Z) 
-
-    #cart_position = CartesianPosition(None , None , None, 90 , 0 , 45)
-    #armController.move_to_cartesian(cart_position)
-    # END ====================================================== Section to cartesian position
 
 
     # Start ------------------------------------------------------ Read the current poisiton 
@@ -104,71 +116,29 @@ def main() :
     # END ====================================================== Read the current poisiton 
      
 
-
-    # Start ------------------------------------------------------ Read the current poisiton 
-    duration = 3 # seconds 
-    twistValues = TwistValues(0.03 , 0 , 0 ) 
-    twistValues = TwistValues(0.03 , 0 , 0 , 0 , 0 , 0) 
-    #armController.twist_command(twistValues , duration)
-
-    # END ====================================================== Read the current poisiton 
-
-
-    # ---------------------------
-    # Start ------------------------------------------------------ Read the current poisiton 
-    # Sending joint_speed_command
-    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, -20) 
-    duration = 3 
-    #armController.joint_speed_command(jointSpeedValues , duration)
-
-
     #
     # Start ------------------------------------------------------ Read the current poisiton 
-
-    #gripperllControl = GripperLowlevelControl(armController) 
+    gripperllControl = GripperLowlevelControl(armController) 
     #gripperllControl.reachGripperPosition(0)
-    #time.sleep(1)
+    time.sleep(1)
 
     #gripperllControl.reachGripperPosition(50)
-    #time.sleep(1)
+    time.sleep(1)
 
     #gripperllControl.reachGripperPosition(100)
     #time.sleep(1)
-
+     
     # ---------------------------
     #gripperllControl.reachGripperPosition(0)
+    # Juste a pause 
     #time.sleep(1)
+
+    # Very important : terminate() must be called when the gripper manipulation 
+    # is terminated before doing other actions on the robot 
     #gripperllControl.terminate() 
 
     #
     # Start ------------------------------------------------------ Read the current poisiton 
-
-    # Sending joint_speed_command
-    # ---------------------------
-    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, 0) 
-    duration = 3 
-    #armController.joint_speed_command(jointSpeedValues , duration)
-
-    #
-    # Start ------------------------------------------------------ Read the current poisiton 
-
-    # ---------------------------
-    #gripperllControl = GripperLowlevelControl(armController) 
-    
-    #gripperllControl.reachGripperPosition(100)
-    
-    #time.sleep(1)
-    #gripperllControl.terminate() 
-
-
-    # Start ------------------------------------------------------ Read the current poisiton 
-    jointSpeedValues = JointSpeedValues(5 , 0 , 0 , 0 , 0 , 0, 0) 
-    duration = 3 
-    #armController.joint_speed_command(jointSpeedValues , duration)
-    
-    # Start ------------------------------------------------------ Read the current poisiton 
-    jointAnglesValues = JointAnglesValues(0,0,0,0,0,90,45)
-    #armController.move_to_position_angles(jointAnglesValues) 
 
 
     # Start ------------------------------------------------------ Read the current poisiton 
